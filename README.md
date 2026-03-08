@@ -60,7 +60,17 @@ No API needed — just import and call.
 
 ## Install
 
+### OpenClaw Skill
+
 ```bash
+clawhub install tiktok-overlay
+```
+
+### Manual
+
+```bash
+git clone https://github.com/xmuweili/tiktok-overlay.git
+cd tiktok-overlay
 pip install Pillow moviepy
 ```
 
