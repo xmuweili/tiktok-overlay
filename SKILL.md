@@ -1,5 +1,6 @@
 ---
 name: tiktok-overlay
+version: 1.0.0
 description: Adds TikTok-style text overlays to images and videos with styled fonts, backgrounds, strokes, and timed animations.
 user-invocable: true
 metadata:
