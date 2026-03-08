@@ -51,12 +51,8 @@ No API needed — just import and call.
 <th>After</th>
 </tr>
 <tr>
-<td>
-<video src="examples/video_before.mp4" width="300" controls></video>
-</td>
-<td>
-<video src="examples/video_after.mp4" width="300" controls></video>
-</td>
+<td><img src="examples/video_before.gif" width="300"></td>
+<td><img src="examples/video_after.gif" width="300"></td>
 </tr>
 </table>
 
