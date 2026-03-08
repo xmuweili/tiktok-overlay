@@ -1,6 +1,6 @@
 ---
 name: tiktok-overlay
-version: 1.0.0
+version: 1.1.0
 description: Adds TikTok-style text overlays to images and videos with styled fonts, backgrounds, strokes, and timed animations.
 user-invocable: true
 metadata:
@@ -47,39 +47,117 @@ pip3 install Pillow moviepy
 
 ## Image Overlay
 
-Use `{baseDir}/tiktok_overlay.py` for images. Run as a Python script:
+Use `{baseDir}/tiktok_overlay.py` for images:
 
 ```python
 import sys
 sys.path.insert(0, "{baseDir}")
-from tiktok_overlay import overlay_text, overlay_texts, TextOverlay, TikTokStyle
+from tiktok_overlay import overlay_text, overlay_texts, TextOverlay
 
-# Single text
+# Single text — save to file
 overlay_text("input.jpg", "Your text here", "output.jpg",
-    style=TikTokStyle.CLASSIC,
-    font_size=48,
-    text_color="#FFFFFF",
-    bg_style="highlight",
-    bg_color="#000000",
-    bg_opacity=0.6,
-    position="center",       # "top", "center", "bottom", or (x, y) tuple
-    alignment="center",      # "left", "center", "right"
-    stroke_width=0,
-    stroke_color="#000000",
-)
+    style="classic", font_size=48, stroke_width=5, bg_style="none")
 
-# Multiple overlays on one image
+# Single text — return PIL Image (omit output_path)
+result = overlay_text("input.jpg", "Your text here",
+    style="strong", font_size="large", text_color="coral")
+
+# Multiple overlays — TextOverlay objects
 overlay_texts("input.jpg", [
-    TextOverlay("Top text", position="top", style=TikTokStyle.CLASSIC, font_size=48, stroke_width=4),
-    TextOverlay("Bottom text", position="bottom", style=TikTokStyle.STRONG, text_color="#FF6B6B"),
+    TextOverlay("Top text", position="top", style="classic", stroke_width=4),
+    TextOverlay("Bottom", position="bottom", text_color="red"),
 ], "output.jpg")
+
+# Multiple overlays — dicts (no import needed)
+overlay_texts("input.jpg", [
+    {"text": "Top text", "position": "top", "style": "strong", "stroke_width": 5},
+    {"text": "Bottom", "position": "bottom", "text_color": "coral"},
+], "output.jpg")
+
+# Multiple overlays — (text, kwargs) tuples
+overlay_texts("input.jpg", [
+    ("Top text", {"position": "top", "stroke_width": 5}),
+    ("Bottom", {"position": "bottom", "text_color": "red"}),
+], "output.jpg")
+```
+
+### Flexible Inputs
+
+All parameters accept multiple formats:
+
+**Input source** — file path, PIL Image, numpy array, or bytes:
+```python
+overlay_text("photo.jpg", "Hello", "out.jpg")          # path
+overlay_text(pil_image, "Hello", "out.jpg")             # PIL Image
+overlay_text(numpy_array, "Hello", "out.jpg")           # numpy
+overlay_text(image_bytes, "Hello", "out.jpg")           # bytes
+```
+
+**Output** — file path to save, or None to return PIL Image:
+```python
+overlay_text("photo.jpg", "Hello", "out.jpg")           # saves file
+result = overlay_text("photo.jpg", "Hello")             # returns PIL Image
+```
+
+**Colors** — hex, short hex, hex+alpha, named, RGB tuple, RGBA tuple:
+```python
+text_color="#FF0000"          # hex
+text_color="#F00"             # short hex
+text_color="#FF000080"        # hex with alpha
+text_color="red"              # named (all CSS/PIL colors)
+text_color=(255, 0, 0)        # RGB tuple
+text_color=(255, 0, 0, 128)   # RGBA tuple
+```
+
+**Font size** — int pixels, string with unit, or named size:
+```python
+font_size=48                  # pixels
+font_size="48px"              # string with unit
+font_size="small"             # 32px
+font_size="medium"            # 48px
+font_size="large"             # 64px
+font_size="xl"                # 80px
+font_size="title"             # 72px
+font_size="caption"           # 28px
+```
+
+**Style** — string or enum:
+```python
+style="classic"               # string
+style="strong"
+from tiktok_overlay import TikTokStyle
+style=TikTokStyle.CLASSIC     # enum
+```
+
+**Position** — named, compound, pixel, percentage, or dict:
+```python
+position="top"                # named
+position="bottom-left"        # compound
+position=(100, 200)           # pixel coordinates
+position=("50%", "80%")       # percentage of image size
+position={"x": "10%", "y": "top"}  # dict with mixed
+```
+
+**Opacity** — float, int, or percentage string:
+```python
+bg_opacity=0.6                # float 0-1
+bg_opacity=153                # int 0-255
+bg_opacity="60%"              # percentage string
+```
+
+**Max width ratio** — float or percentage string:
+```python
+max_width_ratio=0.85          # float
+max_width_ratio="85%"         # percentage string
 ```
 
 ### CLI
 
 ```bash
-python3 {baseDir}/tiktok_overlay.py <input_image> "<text>" <output_image> [style]
+python3 {baseDir}/tiktok_overlay.py <input_image> "<text>" [output_image] [style]
 ```
+
+Output path is optional — defaults to `input_overlay.ext`.
 
 ## Video Overlay
 
@@ -89,23 +167,21 @@ Use `{baseDir}/tiktok_video_overlay.py` for videos. Supports timed text and fade
 import sys
 sys.path.insert(0, "{baseDir}")
 from tiktok_video_overlay import overlay_video_text, overlay_video_texts, VideoTextOverlay
-from tiktok_overlay import TikTokStyle
 
 # Single text on entire video
 overlay_video_text("input.mp4", "Hello!", "output.mp4",
-    style=TikTokStyle.CLASSIC, font_size=52, stroke_width=5)
+    style="classic", font_size=52, stroke_width=5)
 
 # Multiple timed texts
 overlay_video_texts("input.mp4", [
     VideoTextOverlay("Appears 0-3s", t_start=0, t_end=3,
         fade_in=0.5, fade_out=0.5,
-        style=TikTokStyle.CLASSIC, position="top", font_size=48, stroke_width=4),
+        style="classic", position="top", font_size=48, stroke_width=4),
     VideoTextOverlay("Appears 2-5s", t_start=2, t_end=5,
-        style=TikTokStyle.STRONG, position="center", font_size=56,
-        text_color="#FF6B6B", stroke_width=5, bg_style="none"),
+        style="strong", position="center", font_size=56,
+        text_color="tomato", stroke_width=5, bg_style="none"),
     VideoTextOverlay("Always visible",
-        style=TikTokStyle.CLASSIC, position="bottom", font_size=40,
-        bg_style="highlight"),
+        position="bottom", font_size=40, bg_style="highlight"),
 ], "output.mp4")
 ```
 
@@ -117,20 +193,22 @@ python3 {baseDir}/tiktok_video_overlay.py <input_video> "<text>" <output_video> 
 
 ## Key Parameters
 
-| Parameter        | Type              | Default      | Description                                   |
-|------------------|-------------------|--------------|-----------------------------------------------|
-| `text`           | str               | —            | The text to overlay                           |
-| `style`          | TikTokStyle       | `classic`    | Font style                                    |
-| `font_size`      | int               | 48           | Font size in pixels                           |
-| `text_color`     | str (hex)         | `#FFFFFF`    | Text color                                    |
-| `bg_style`       | str               | `highlight`  | Background style                              |
-| `bg_color`       | str (hex)         | `#000000`    | Background color                              |
-| `bg_opacity`     | float (0-1)       | 0.6          | Background opacity                            |
-| `position`       | str or (x,y)      | `center`     | Position: top/center/bottom or pixel coords   |
-| `alignment`      | str               | `center`     | Text alignment: left/center/right             |
-| `stroke_width`   | int               | 0            | Outline thickness (4-6 for TikTok look)       |
-| `stroke_color`   | str (hex)         | `#000000`    | Outline color                                 |
-| `max_width_ratio` | float            | 0.85         | Max text width as ratio of image width        |
+| Parameter          | Accepts                                        | Default      | Description                              |
+|--------------------|------------------------------------------------|--------------|------------------------------------------|
+| `input_source`     | path, PIL Image, numpy array, bytes            | —            | Image to overlay                         |
+| `text`             | str                                            | —            | The text to overlay                      |
+| `output_path`      | path or None                                   | None         | Save path; None returns PIL Image        |
+| `style`            | str, TikTokStyle, None                         | `classic`    | Font style                               |
+| `font_size`        | int, str (`"48px"`, `"large"`)                 | 48           | Font size                                |
+| `text_color`       | hex, named, rgb/rgba tuple                     | `#FFFFFF`    | Text color                               |
+| `bg_style`         | str                                            | `highlight`  | Background style                         |
+| `bg_color`         | hex, named, rgb/rgba tuple                     | `#000000`    | Background color                         |
+| `bg_opacity`       | float 0-1, int 0-255, str `"60%"`             | 0.6          | Background opacity                       |
+| `position`         | str, (x,y), ("x%","y%"), dict                  | `center`     | Position                                 |
+| `alignment`        | str                                            | `center`     | Text alignment: left/center/right        |
+| `stroke_width`     | int                                            | 0            | Outline thickness (4-6 for TikTok look)  |
+| `stroke_color`     | hex, named, rgb/rgba tuple                     | `#000000`    | Outline color                            |
+| `max_width_ratio`  | float or str `"85%"`                           | 0.85         | Max text width as ratio of image width   |
 
 ### Video-only Parameters
 
@@ -143,8 +221,9 @@ python3 {baseDir}/tiktok_video_overlay.py <input_video> "<text>" <output_video> 
 
 ## Tips
 
-- For the classic TikTok outlined text look, use `bg_style="none"` with `stroke_width=4` or `stroke_width=5`.
+- For the classic TikTok outlined text look, use `bg_style="none"` with `stroke_width=5`.
 - For the TikTok highlight look, use `bg_style="highlight"` with `bg_opacity=0.6`.
 - Word wrapping is automatic based on `max_width_ratio`.
-- Position can be a string (`top`, `center`, `bottom`) or exact pixel coordinates `(x, y)`.
+- Compound positions like `"top-left"` and `"bottom-right"` are supported.
+- All CSS/PIL named colors work: `"red"`, `"coral"`, `"dodgerblue"`, `"gold"`, etc.
 - Uses macOS system fonts as TikTok-style substitutes. Works out of the box on macOS.
